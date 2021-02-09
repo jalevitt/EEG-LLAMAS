@@ -123,6 +123,7 @@ function Start_Callback(hObject, eventdata, handles)
     disp('Loading the library...');
     lib = lsl_loadlib();
 
+
     %load eyes open/closed classifier
     load('EOECDist.mat')
     load('EOECModel.mat')
@@ -133,29 +134,11 @@ function Start_Callback(hObject, eventdata, handles)
     while isempty(result)
         result = lsl_resolve_byprop(lib,'type','EEG'); 
     end
-   
-
+    
     % create a new inlet
     disp('Opening an inlet...');
     inlet = lsl_inlet(result{1});
     
-    
-    disp('Resolving a Markers stream...');
-    result = {};
-    while isempty(result)
-        result = lsl_resolve_byprop(lib,'type','Markers'); 
-    end
-    Mrk_info = result{1}.channel_format();
-    
-    % create a new inlet
-    disp('Opening an inlet...');
-    Mrk_inlet = lsl_inlet(result{1});
-    
-    vals.eventBlockSize = 10000;
-    vals.eventCount = 1;
-    EEG.eventTimes = zeros(vals.eventBlockSize, 1);
-    EEG.eventLbls = cell( vals.eventBlockSize, 1);
-
     % create the channel names
     generateLabelNames;
     vars.ChannelNames = ChannelNames;
@@ -193,7 +176,26 @@ function Start_Callback(hObject, eventdata, handles)
     numChans = EEG.numChans;
     vars.currentPosition = 1;
     
+     
+    
+    if vars.UseTriggers
+        disp('Resolving a Markers stream...');
+        result = {};
+        while isempty(result)
+            result = lsl_resolve_byprop(lib,'type','Markers'); 
+        end
+        Mrk_info = result{1}.channel_format();
 
+        % create a new inlet
+        disp('Opening an inlet...');
+        Mrk_inlet = lsl_inlet(result{1});
+
+        vals.eventBlockSize = 10000;
+        vals.eventCount = 1;
+        EEG.eventTimes = zeros(vals.eventBlockSize, 1);
+        EEG.eventLbls = cell( vals.eventBlockSize, 1);
+    end
+    
     %Initiate a blank recording
     RecSize = 100000;
     BlockSize = RecSize;
@@ -379,24 +381,26 @@ function Start_Callback(hObject, eventdata, handles)
     BreakFlag = 0;
     EEG.StartTime = GetSecs();
     vars.startClock = tic;
+    
     while (isgraphics(Eyes) && isgraphics(Graph)) && ~BreakFlag
         vars.clock = tic; %start a timer
         % get chunk from the inlet
         t_offset = toc(vars.startClock);
         [vars.OrigChunk,stamps] = inlet.pull_chunk();
-        disp('hi')
-        [mrks,ts] = Mrk_inlet.pull_sample(0.0005);
         
-        if length(ts) > 0
-            if length(ts) + vals.eventCount > length(EEG.eventLbls)
-                EEG.eventTimes = cat(1, EEG.eventTimes, zeros(vals.eventBlockSize, 1));
-                EEG.eventLbls = cat(1, EEG.eventLbls, cell(vals.eventBlockSize, 1));
+        if vars.UseTriggers
+            [mrks,ts] = Mrk_inlet.pull_sample(0.00005);
+        
+            if length(ts) > 0
+                if length(ts) + vals.eventCount > length(EEG.eventLbls)
+                    EEG.eventTimes = cat(1, EEG.eventTimes, zeros(vals.eventBlockSize, 1));
+                    EEG.eventLbls = cat(1, EEG.eventLbls, cell(vals.eventBlockSize, 1));
+                end
+                EEG.eventTimes(vals.eventCount:vals.eventCount + length(ts) - 1) = ts;
+                EEG.eventLbls(vals.eventCount:vals.eventCount + length(ts) - 1) = mrks;
+                vals.eventCount = vals.eventCount + length(ts);
             end
-            EEG.eventTimes(vals.eventCount:vals.eventCount + length(ts) - 1) = ts;
-            EEG.eventLbls(vals.eventCount:vals.eventCount + length(ts) - 1) = mrks;
-            vals.eventCount = vals.eventCount + length(ts);
         end
-        
         [vars.SamplesInChunk, ChansInChunk] = size(vars.OrigChunk');
         %stamps = linspace(t_offset - (length(stamps) - 1) * 1/EEG.fs_orig, t_offset, length(stamps));
         
