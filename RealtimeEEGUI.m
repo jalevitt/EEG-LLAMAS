@@ -123,6 +123,7 @@ function Start_Callback(hObject, eventdata, handles)
     disp('Loading the library...');
     lib = lsl_loadlib();
 
+
     %load eyes open/closed classifier
     load('EOECDist.mat')
     load('EOECModel.mat')
@@ -133,12 +134,11 @@ function Start_Callback(hObject, eventdata, handles)
     while isempty(result)
         result = lsl_resolve_byprop(lib,'type','EEG'); 
     end
-   
-
+    
     % create a new inlet
     disp('Opening an inlet...');
     inlet = lsl_inlet(result{1});
-
+    
     % create the channel names
     generateLabelNames;
     vars.ChannelNames = ChannelNames;
@@ -176,7 +176,26 @@ function Start_Callback(hObject, eventdata, handles)
     numChans = EEG.numChans;
     vars.currentPosition = 1;
     
-
+     
+    
+%     if vars.UseTriggers
+%         disp('Resolving a Markers stream...');
+%         result = {};
+%         while isempty(result)
+%             result = lsl_resolve_byprop(lib,'type','Markers'); 
+%         end
+%         Mrk_info = result{1}.channel_format();
+% 
+%         % create a new inlet
+%         disp('Opening an inlet...');
+%         Mrk_inlet = lsl_inlet(result{1});
+% 
+%         vals.eventBlockSize = 10000;
+%         vals.eventCount = 1;
+%         EEG.eventTimes = zeros(vals.eventBlockSize, 1);
+%         EEG.eventLbls = cell( vals.eventBlockSize, 1);
+%     end
+    
     %Initiate a blank recording
     RecSize = 100000;
     BlockSize = RecSize;
@@ -276,6 +295,9 @@ function Start_Callback(hObject, eventdata, handles)
     end
     vars.ChannelsToPlot(EEG.PrimaryChannel) = 1; %make sure our primary channel is on
     vars.ChannelsToPlot = vars.ChannelsToPlot == 1; %convert to boolean array
+    if length(vars.ChannelsToPlot) > EEG.numChans
+        vars.ChannelsToPlot = vars.ChannelsToPlot(1:EEG.numChans);
+    end
     vars.numChannelsToPlot = sum(vars.ChannelsToPlot);  
     if handles.Kalman.Value
         vars.numChannelsToPlot = numKalman;
@@ -362,13 +384,28 @@ function Start_Callback(hObject, eventdata, handles)
     BreakFlag = 0;
     EEG.StartTime = GetSecs();
     vars.startClock = tic;
+    
     while (isgraphics(Eyes) && isgraphics(Graph)) && ~BreakFlag
         vars.clock = tic; %start a timer
         % get chunk from the inlet
         t_offset = toc(vars.startClock);
         [vars.OrigChunk,stamps] = inlet.pull_chunk();
-        [vars.SamplesInChunk, ChansInChunk] = size(vars.OrigChunk');
-        stamps = linspace(t_offset - (length(stamps) - 1) * 1/EEG.fs_orig, t_offset, length(stamps));
+        
+%         if vars.UseTriggers
+%             [mrks,ts] = Mrk_inlet.pull_sample(0.00005);
+%         
+%             if length(ts) > 0
+%                 if length(ts) + vals.eventCount > length(EEG.eventLbls)
+%                     EEG.eventTimes = cat(1, EEG.eventTimes, zeros(vals.eventBlockSize, 1));
+%                     EEG.eventLbls = cat(1, EEG.eventLbls, cell(vals.eventBlockSize, 1));
+%                 end
+%                 EEG.eventTimes(vals.eventCount:vals.eventCount + length(ts) - 1) = ts;
+%                 EEG.eventLbls(vals.eventCount:vals.eventCount + length(ts) - 1) = mrks;
+%                 vals.eventCount = vals.eventCount + length(ts);
+%             end
+%         end
+        [vars.SamplesInChunk, vars.ChansInChunk] = size(vars.OrigChunk');
+        %stamps = linspace(t_offset - (length(stamps) - 1) * 1/EEG.fs_orig, t_offset, length(stamps));
         
 
         if numel(vars.OrigChunk) > 0 %if the chunk isn't empty, we need to process it.
@@ -377,12 +414,12 @@ function Start_Callback(hObject, eventdata, handles)
                 stamps = downsample(stamps, round(5000/EEG.fs_orig), dsBuffer2);
                 [vars.OrigChunk, dsBuffer2] = DownSampleTriggrs(vars.OrigChunk, round(5000/EEG.fs_orig), dsBuffer2);
                 
-                [vars.SamplesInChunk, ChansInChunk] = size(vars.OrigChunk');
+                [vars.SamplesInChunk, vars.ChansInChunk] = size(vars.OrigChunk');
                 vars.OrigChunk = [EEG_old.Recording(Old_position:Old_position + vars.SamplesInChunk - 1, 1:numChans)'; vars.OrigChunk(end, :)];
                 if vars.UseGAC %preserve trs from original
                     vars.OrigChunk(end, find(EEG_old.Recording(Old_position:Old_position + vars.SamplesInChunk - 1, numChans + 1) == 1)) = 1;
                 end
-                [vars.SamplesInChunk, ChansInChunk] = size(vars.OrigChunk');
+                [vars.SamplesInChunk, vars.ChansInChunk] = size(vars.OrigChunk');
                 Old_position = Old_position + vars.SamplesInChunk;
             end
 
@@ -418,7 +455,7 @@ function Start_Callback(hObject, eventdata, handles)
                     %function
                     [chunk, dsBuffer] = DownSampleTriggrs(vars.OrigChunk, DSrate, dsBuffer);
 
-                    [vars.SamplesInChunk, ChansInChunk] = size(chunk');
+                    [vars.SamplesInChunk, vars.ChansInChunk] = size(chunk');
                     if vars.SamplesInChunk ~= length(stamps)
                         stamps = zeros(1, vars.SamplesInChunk);
                     end
@@ -428,7 +465,7 @@ function Start_Callback(hObject, eventdata, handles)
                     if vars.SamplesInChunk == 1 && (dsBuffer == 0)
                         chunk = vars.OrigChunk;
                     elseif vars.SamplesInChunk == 1
-                        chunk = zeros(ChansInChunk, 0);
+                        chunk = zeros(vars.ChansInChunk, 0);
                     else
                         chunk = downsample(vars.OrigChunk', DSrate, dsBuffer)';
                     end
@@ -471,7 +508,7 @@ function Start_Callback(hObject, eventdata, handles)
                 end
                 if useDownSampling
                     EEG.Recording = cat(1, EEG.Recording, zeros(BlockSize, FullWidth));
-                    chop = vars.currentPosition_orig - EEG.fs_orig * 120;
+                    chop = max(1, vars.currentPosition_orig - EEG.fs_orig * 120);
                     EEG.Recording_orig = cat(1, EEG.Recording_orig(chop:end, :), ...
                         single(zeros(BlockSize * DSrate, FullWidth)));
                     vars.currentPosition_orig = vars.currentPosition_orig - (chop - 1);
@@ -563,6 +600,7 @@ function Start_Callback(hObject, eventdata, handles)
     
     PsychPortAudio('Close')
     delete(inlet);
+%     delete(Mrk_inlet);
     if vars.UseTriggers
         fclose(port);
     end
