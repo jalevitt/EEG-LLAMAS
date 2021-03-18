@@ -30,12 +30,22 @@ if vars.currentPosition > vars.EEGPlotPosition
     else
         SampleToPlot = EEG.Recording(SampleMin:SampleMax, vars.ChannelsToPlot');
     end
-
+    
+    ChanStr = vars.ChannelNames(vars.ChannelsToPlot);
+    YTickPos  = zeros(vars.numChannelsToPlot * 3, 1);
+    YTickLab  = cell(vars.numChannelsToPlot * 3, 1);
     %adjust our sample to create vertical channel offsets
     for i = 1:vars.numChannelsToPlot
         mx = max(SampleToPlot(:, i));
         mn = min(SampleToPlot(:, i));
         SampleToPlot(:, i) = 2 * (SampleToPlot(:, i) - mn)/(mx - mn) + i * 2;
+        YTickPos(i * 3 - 1) = i * 2 + 1;
+        YTickPos(i * 3 - 2) = i * 2 + 0.5;
+        YTickPos(i * 3) = i * 2 + 1.5;
+        YTickLab(i * 3 - 1) = ChanStr(i);
+        YTickLab(i * 3 - 2) = {sprintf('%.2f', 0.75 * mn + 0.25 * mx)};
+        YTickLab(i * 3) = {sprintf('%.2f', 0.25 * mn + 0.75 * mx)};
+        
     end
 
 
@@ -51,10 +61,12 @@ if vars.currentPosition > vars.EEGPlotPosition
         hold off
         xlim([xMin, xMax])
         ylim([1, vars.numChannelsToPlot * 2 + 2])
-        yticks(1 + (2:2:vars.numChannelsToPlot * 2));
-        if ~vars.UseKalman
-            yticklabels(vars.ChannelNames(vars.ChannelsToPlot))
-        end
+%         yticks(1 + (2:2:vars.numChannelsToPlot * 2));
+%         if ~vars.UseKalman
+%             yticklabels(vars.ChannelNames(vars.ChannelsToPlot))
+%         end
+        yticks(YTickPos);
+        yticklabels(YTickLab);
         xlabel('Time (S)')
     end
 

@@ -224,8 +224,8 @@ function Start_Callback(hObject, eventdata, handles)
         fname = [handles.StreamPath, txtdate, '_fs_', txtfs, '.txt'];
         logname = [handles.StreamPath, 'LOG', txtdate, '_fs_', txtfs, '.txt'];
     else
-        fname = ['C:\Users\lewislab\Documents\labstreaminglayer\LSL\liblsl-Matlab\RealTimeEEG\Recordings\', txtdate, '_fs_', txtfs, '.txt'];
-        logname = ['C:\Users\lewislab\Documents\labstreaminglayer\LSL\liblsl-Matlab\RealTimeEEG\Recordings\LOG', txtdate, '_fs_', txtfs, '.txt'];
+        fname = ['Recordings\', txtdate, '_fs_', txtfs, '.txt'];
+        logname = ['Recordings\LOG', txtdate, '_fs_', txtfs, '.txt'];
 
     end
     
@@ -289,7 +289,7 @@ function Start_Callback(hObject, eventdata, handles)
 
     %set up which channels we will actually plot, by reading from the
     %DisplayChannels.csv file
-    vars.ChannelsToPlot = xlsread('C:\Users\lewislab\Documents\labstreaminglayer\LSL\liblsl-Matlab\RealTimeEEG\DisplayChannels.csv');
+    vars.ChannelsToPlot = xlsread('DisplayChannels.csv');
     if vars.UseTriggers
         vars.ChannelsToPlot = [vars.ChannelsToPlot; 1]; %make sure our trigger channel is on
     end
