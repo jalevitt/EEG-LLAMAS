@@ -60,13 +60,14 @@ if vars.currentPosition > vars.EEGPlotPosition
         end
         hold off
         xlim([xMin, xMax])
-        ylim([1, vars.numChannelsToPlot * 2 + 2])
+        
 %         yticks(1 + (2:2:vars.numChannelsToPlot * 2));
 %         if ~vars.UseKalman
 %             yticklabels(vars.ChannelNames(vars.ChannelsToPlot))
 %         end
         yticks(YTickPos);
         yticklabels(YTickLab);
+        ylim([1, vars.numChannelsToPlot * 2 + 2])
         xlabel('Time (S)')
     end
 
