@@ -1,0 +1,31 @@
+function [vars] = SlowWaveStim(EEG, vars)
+%UNTITLED4 Summary of this function goes here
+%   Detailed explanation goes here
+if ~isfield(vars, 'PhasePredictor')
+    load('LSTM_shift_35ms.mat')
+    vars.PhasePredictor = PhaseNet;
+end
+if vars.UseSlowWaveStim && vars.SamplesInChunk > 0 
+    if ~vars.UseKalman
+        sample =  EEG.Recording((vars.currentPosition - vars.SamplesInChunk)-1:vars.currentPosition - 1, EEG.PrimaryChannel);
+    else
+        sample =  EEG.Kalman_Signal((vars.currentPosition - vars.SamplesInChunk)-1:vars.currentPosition - 1, EEG.PrimaryChannel);
+    end
+    [FiltSample, vars.z] = filter(vars.b, vars.a, sample(2:end), vars.z);
+    X = zeros(3, length(sample) - 1, 1, 1);
+    X(1, :, 1, 1) = sample(2:end);
+    X(2, :, 1, 1) = diff(sample);
+    X(3, :, 1, 1) = FiltSample;
+    [vars.PhasePredictor, Pred] = predictAndUpdateState(vars.PhasePredictor, X);
+    PredAngle = angle(Pred
+    if (vars.currentPosition - vars.TriggerBuffer) > vars.LastStimPosition
+        
+        PsychPortAudio('Start', vars.audio_port, vars.repetitions, GetSecs() + vars.SlowWaveDelay, 0);
+        %sound(Sound, fsSound)
+        vars.StimTimes(vars.StimCount) = vars.currentPosition;
+        vars.StimCount = vars.StimCount + 1;
+        vars.LastStimPosition = vars.currentPosition;
+    end
+end
+end
+
