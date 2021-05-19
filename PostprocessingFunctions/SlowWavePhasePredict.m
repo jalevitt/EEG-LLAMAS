@@ -5,9 +5,9 @@ function [vars] = SlowWavePhasePredict(EEG, vars)
 
 if vars.UseSlowWaveStim && vars.SamplesInChunk > 0 
     if ~isfield(vars, 'PhasePredictor')
-        load('LSTM2_shift_35ms.mat')
+        load('LSTM2_shift_75ms.mat')
         vars.PhasePredictor = resetState(PhaseNet);
-        vars.SlowWaveDelay = .035;
+        vars.SlowWaveDelay = .000;
         vars.Angles = zeros(1000000, 1);
         vars.X = zeros(3, 1000000);
     end
@@ -20,10 +20,11 @@ if vars.UseSlowWaveStim && vars.SamplesInChunk > 0
         end
     else
         if(vars.currentPosition - vars.SamplesInChunk)-1 <= 0
-            sample =  EEG.Kalman_Signal((vars.currentPosition - vars.SamplesInChunk):vars.currentPosition - 1, EEG.PrimaryChannel);
+            
+            sample =  EEG.Kalman_Signal((vars.currentPosition - vars.SamplesInChunk):vars.currentPosition - 1, EEG.KalmanPrimary);
             sample = [0; sample];
         else
-            sample =  EEG.Kalman_Signal((vars.currentPosition - vars.SamplesInChunk)-1:vars.currentPosition - 1, EEG.PrimaryChannel);
+            sample =  EEG.Kalman_Signal((vars.currentPosition - vars.SamplesInChunk)-1:vars.currentPosition - 1, EEG.KalmanPrimary);
         end
     end
     [FiltSample, vars.z] = filter(vars.b, vars.a, sample(2:end), vars.z);

@@ -22,13 +22,21 @@ if vars.currentPosition > vars.EEGPlotPosition
 
 
     %choose the sample section we'll be plotting
+    SampleToPlot = EEG.Recording(SampleMin:SampleMax, vars.ChannelsToPlot');
+    
     if vars.UseKalman
-        SampleToPlot = EEG.Kalman_Signal(SampleMin:SampleMax, :);
-        if vars.UseTriggers
-            SampleToPlot = [SampleToPlot, EEG.Recording(SampleMin:SampleMax, end - 1)];
+        for i = 1:vars.numChannelsToPlot
+            temp = ismember(vars.KalmanTargets, vars.ChannelsToPlotdIDX(i));
+            if sum(temp)
+                
+                SampleToPlot(:, i) = EEG.Kalman_Signal(SampleMin:SampleMax, temp);
+            end
         end
-    else
-        SampleToPlot = EEG.Recording(SampleMin:SampleMax, vars.ChannelsToPlot');
+%         if vars.UseTriggers
+%             SampleToPlot = [SampleToPlot, EEG.Recording(SampleMin:SampleMax, end - 1)];
+%         end
+%     else
+%         
     end
     
     ChanStr = vars.ChannelNames(vars.ChannelsToPlot);
