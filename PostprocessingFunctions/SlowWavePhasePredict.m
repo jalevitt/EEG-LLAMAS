@@ -1,4 +1,4 @@
-function [vars] = SlowWavePhasePredict(EEG, vars)
+function [vars, Graph, EEG] = SlowWavePhasePredict(EEG, vars, Graph)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 

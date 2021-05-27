@@ -1,4 +1,4 @@
-function [vars, Eyes] = AlphaStim(EEG, vars, Eyes)
+function [vars, Graphs, EEG] = AlphaStim(EEG, vars, Graphs)
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -60,8 +60,8 @@ if vars.UseAlphaStim && vars.currentPosition > vars.alphaPosition
     end
 
     %update our graph of p(eyesClosed)
-    if isgraphics(Eyes)
-        set(0, 'CurrentFigure', Eyes)
+    if isgraphics(Graphs.Eyes)
+        set(0, 'CurrentFigure', Graphs.Eyes)
         plot((1:length(vars.alphaVec))/vars.alphaPerSecond, vars.pEyesClosed)
         hold on
         xline(vars.currentPosition / EEG.fs, 'Color', [0.5, 0.5, 0.5], 'LineStyle', ':', 'LineWidth', 0.25);

@@ -1,4 +1,4 @@
-function [vars, Graph] = UpdateMainWindow(EEG, vars, Graph)
+function [vars, Graph, EEG] = UpdateMainWindow(EEG, vars, Graph)
 %UNTITLED6 Summary of this function goes here
 %   Detailed explanation goes here
 %determine if its time to update our plot
@@ -68,8 +68,8 @@ if vars.currentPosition > vars.EEGPlotPosition
 
 
     %make our graph
-    if isgraphics(Graph)
-        set(0, 'CurrentFigure', Graph)
+    if isgraphics(Graph.Graph)
+        set(0, 'CurrentFigure', Graph.Graph)
         plot(time, SampleToPlot, 'k' )
         xLines = unique(round(xMin:xMax));
         hold on
