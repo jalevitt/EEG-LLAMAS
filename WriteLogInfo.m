@@ -1,4 +1,4 @@
-function [] = WriteLogInfo(handles, fid, txtdate)
+function [] = WriteLogInfo(handles, fid, txtdate, vars)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -17,12 +17,12 @@ else
     fprintf(fid, 'Triggers: False\n');
 end
 fprintf(fid, 'Primary Channel: %d\n', str2num(handles.PrimaryChannel.String));
-if handles.UseAlphaStim.Value
+if vars.UseAlphaStim
     fprintf(fid, 'Alpha Stimulation: True\n');
 else
     fprintf(fid, 'Alpha Stimulation: False\n');
 end
-if handles.UseSlowWaveStim.Value
+if vars.UseSlowWaveStim
     fprintf(fid, 'Slow Wave Stimulation: True\n');
     fprintf(fid, 'Stimulation Threshold: %0.2f\n', str2num(handles.StimThresh.String));
 else
@@ -39,7 +39,7 @@ if handles.UseOld.Value
 else
     fprintf(fid, 'Is Replay: False\n');
 end
-if handles.Kalman.Value
+if vars.UseKalman
     fprintf(fid, 'Use Kalman Filter: True\n');
 else
     fprintf(fid, 'Use Kalman Filter: False\n');

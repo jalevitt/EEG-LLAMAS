@@ -1,5 +1,6 @@
+
 %build the sound we'll play
-fsSound = 48000;
+fsSound = vars.audioDevices(vars.deviceID + 1).DefaultSampleRate; %48000;
 s = 0.05;
 cn = dsp.ColoredNoise(1, fsSound * s, 1, 'OutputDataType', 'double');
 PinkSound = cn();
@@ -7,7 +8,15 @@ PinkSound = hamming(length(PinkSound)).*PinkSound;
 
 %initialize the audio player
 InitializePsychSound;
-audio_port = PsychPortAudio('Open', 3, 1, [], fsSound, 2, [], 0.02);
+
+vars.audioDevices = PsychPortAudio('GetDevices');
+if isunix
+    vars.deviceID = 0;
+else
+    vars.deviceID = 5;
+end
+
+audio_port = PsychPortAudio('Open', vars.deviceID, 1, 3, fsSound, 2, []);
 audio_to_play = [PinkSound, PinkSound]';
 PsychPortAudio('FillBuffer', audio_port, audio_to_play);
 
