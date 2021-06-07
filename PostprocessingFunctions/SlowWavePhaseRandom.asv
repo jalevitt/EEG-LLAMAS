@@ -1,4 +1,4 @@
-function [vars, Graph, EEG] = SlowWavePhasePredict(EEG, vars, Graph)
+function [vars, Graph, EEG] = SlowWavePhaseRandom(EEG, vars, Graph)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -41,7 +41,8 @@ if vars.SamplesInChunk > 0 %&& vars.UseSlowWaveStim
     if (vars.currentPosition - vars.TriggerBuffer) > vars.LastStimPosition
         if Mag > EEG.Threshold
             if (PredAngle < - 9 * pi/10 || PredAngle > 9 * pi/10)
-                PsychPortAudio('Start', vars.audio_port, vars.repetitions, vars.ChunkTime + vars.SlowWaveDelay, 0);
+                RandomDelay = rand * 2;
+                PsychPortAudio('Start', vars.audio_port, vars.repetitions, vars.ChunkTime + vars.SlowWaveDelay + RandomDelay, 0);
                 %sound(Sound, fsSound)
                 vars.StimTimes(vars.StimCount) = round(vars.currentPosition + vars.SlowWaveDelay * EEG.fs);
                 vars.StimCount = vars.StimCount + 1;

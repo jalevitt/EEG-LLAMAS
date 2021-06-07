@@ -1,7 +1,7 @@
 function [vars, Graph, EEG] = Kalman_chunk(EEG,vars, Graph)
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
-if vars.UseKalman
+% if vars.UseKalman
     chunk = vars.chunk - mean(vars.chunk, 1); % re-reference to avereage
     numReg = length(vars.r);
     n = size(chunk, 2);
@@ -28,6 +28,6 @@ if vars.UseKalman
     Kalman = Signal - h_hat';
     EEG.Kalman_Signal(vars.currentPosition - vars.SamplesInChunk:vars.currentPosition - 1, :) ...
                             = Kalman';
-end
+% end
     
 end

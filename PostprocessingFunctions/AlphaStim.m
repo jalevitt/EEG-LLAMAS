@@ -2,7 +2,7 @@ function [vars, Graphs, EEG] = AlphaStim(EEG, vars, Graphs)
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
-if vars.UseAlphaStim && vars.currentPosition > vars.alphaPosition
+if  vars.currentPosition > vars.alphaPosition %% && vars.UseAlphaStim
     %select our sample and filter it
     sampleForAlpha = EEG.Recording(vars.currentPosition - EEG.fs + 1:vars.currentPosition, EEG.PrimaryChannel);
     FiltData = filtfilt(vars.highPassIIR, sampleForAlpha);
@@ -72,7 +72,7 @@ if vars.UseAlphaStim && vars.currentPosition > vars.alphaPosition
     end
 
     vars.alphaPosition = vars.alphaPosition + EEG.fs / vars.alphaPerSecond;
-end
+% end
 
 
 end

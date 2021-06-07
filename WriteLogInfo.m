@@ -1,4 +1,4 @@
-function [] = WriteLogInfo(handles, fid, txtdate, vars)
+function [] = WriteLogInfo(handles, fid, txtdate, vars, EEG)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -10,6 +10,15 @@ if handles.UseDownsampling.Value
     fprintf(fid, 'Downsampled rate: %d\n', str2num(handles.TargetFS.String));
 else
     fprintf(fid, 'Downsampling: False\n');
+end
+if vars.ReReferenceToChans
+    fprintf(fid, 'Re-Referenced to Channels: '); 
+    for i = 1:length(EEG.ReReferenceChans)
+        fprintf(fid, '%d, ', EEG.ReReferenceChans(i)); 
+    end
+    fprintf(fid, '\n'); 
+else
+    fprint(fid, 'Native referencing Montage\n ');
 end
 if handles.UseTriggers.Value
     fprintf(fid, 'Triggers: True\n');
