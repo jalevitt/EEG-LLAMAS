@@ -3,8 +3,13 @@ function [vars, Graph, EEG] = ReReferenceToChans(EEG, vars, Graph)
 %   Detailed explanation goes here
 
 if EEG.ChansRereference == 1
-    M = mean(vars.OrigChunk(EEG.ReReferenceChans, :), 1);
-    vars.OrigChunk = vars.OrigChunk - M;
+    if ~vars.UseTriggers   
+        M = mean(vars.OrigChunk(EEG.ReReferenceChans, :), 1);
+        vars.OrigChunk = vars.OrigChunk - M;
+    else
+        M = mean(vars.OrigChunk(EEG.ReReferenceChans, :), 1);
+        vars.OrigChunk(1:end-1, :) = vars.OrigChunk(1:end-1, :) - M;
+    end
 end
 
 end
