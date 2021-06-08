@@ -2,10 +2,11 @@ function vars = GAC(EEG, vars)
 %UNTITLED7 Summary of this function goes here
 %   Detailed explanation goes here
 if vars.UseGAC % Perform GAC
-    if vars.trGap~= 0 || sum(EEG.Recording_orig(:, end - 1) == 253) > (vars.ntr + 1)
+    
+    if vars.trGap~= 0 || sum(EEG.Recording_orig(:, end - 1) == vars.trMarker) > (vars.ntr + 1)
         if vars.trGap == 0 % if we haven't yet detected the samples per TR, do so now, store in vars.trGap
             trSamp = 1:(vars.currentPosition_orig - 1);
-            trSamp = trSamp(EEG.Recording_orig(:, end - 1) == 253);
+            trSamp = trSamp(EEG.Recording_orig(:, end - 1) == vars.trMarker);
             vars.trGap = mode(diff(trSamp))
             EEG.trGap = vars.trGap;
         end
