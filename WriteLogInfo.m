@@ -18,7 +18,7 @@ if vars.ReReferenceToChans
     end
     fprintf(fid, '\n'); 
 else
-    fprint(fid, 'Native referencing Montage\n ');
+    fprintf(fid, 'Native referencing Montage\n ');
 end
 if handles.UseTriggers.Value
     fprintf(fid, 'Triggers: True\n');
@@ -39,6 +39,7 @@ else
 end
 if handles.GAC.Value
     fprintf(fid, 'Gradient Artifact Correction: True\n');
+    fprintf(fid, '\tntr = %d \n', vars.ntr);
 else
     fprintf(fid, 'Gradient Artifact Correction: False\n');
 end

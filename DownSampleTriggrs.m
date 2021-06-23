@@ -4,8 +4,7 @@ function [chunk, dsBuffer] = DownSampleTriggrs(chunk, DSrate, dsBuffer)
 [SamplesInChunk, ChansInChunk] = size(chunk');
 triggers = chunk(ChansInChunk, :) > 0;
 if sum(triggers > 0)
-    idx = 1:SamplesInChunk;
-    idx = idx(triggers);
+    idx = find(triggers);
     trigVals = chunk(ChansInChunk, idx);
     idx = idx - dsBuffer;
     idx = round(idx/DSrate);
@@ -13,7 +12,7 @@ if sum(triggers > 0)
     idx(idx < 1) = 1;
 end
 
-if SamplesInChunk == 1 && (dsBuffer == 0 || sum(triggers) > 0)
+if SamplesInChunk == 1 && dsBuffer == 0 %% (dsBuffer == 0 || sum(triggers) > 0)
     chunk = chunk;
 elseif SamplesInChunk == 1
     chunk = zeros(ChansInChunk, 0);
