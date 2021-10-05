@@ -1,7 +1,7 @@
 function [] = WriteLogInfo(handles, fid, txtdate, vars, EEG)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
-fprinft(fid, 'Recording Name: %s\n', EEG.RecordingName')
+fprintf(fid, 'Recording Name: %s\n', EEG.RecordingName');
 fprintf(fid, 'Start Time: %s\n', txtdate);
 fprintf(fid, 'Native Sample Rate: %d Hz\n', str2num(handles.NativeFS.String));
 fprintf(fid, 'Number of channels: %d\n', str2num(handles.numChans.String));
