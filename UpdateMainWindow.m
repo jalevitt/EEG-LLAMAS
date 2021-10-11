@@ -1,4 +1,4 @@
-function [vars, Graph] = UpdateMainWindow(EEG, vars, Graph)
+function [vars, Graph, EEG] = UpdateMainWindow(EEG, vars, Graph)
 %UNTITLED6 Summary of this function goes here
 %   Detailed explanation goes here
 %determine if its time to update our plot
@@ -22,13 +22,21 @@ if vars.currentPosition > vars.EEGPlotPosition
 
 
     %choose the sample section we'll be plotting
+    SampleToPlot = EEG.Recording(SampleMin:SampleMax, vars.ChannelsToPlot');
+    
     if vars.UseKalman
-        SampleToPlot = EEG.Kalman_Signal(SampleMin:SampleMax, :);
-        if vars.UseTriggers
-            SampleToPlot = [SampleToPlot, EEG.Recording(SampleMin:SampleMax, end - 1)];
+        for i = 1:vars.numChannelsToPlot
+            temp = ismember(vars.KalmanTargets, vars.ChannelsToPlotdIDX(i));
+            if sum(temp)
+                
+                SampleToPlot(:, i) = EEG.Kalman_Signal(SampleMin:SampleMax, temp);
+            end
         end
-    else
-        SampleToPlot = EEG.Recording(SampleMin:SampleMax, vars.ChannelsToPlot');
+%         if vars.UseTriggers
+%             SampleToPlot = [SampleToPlot, EEG.Recording(SampleMin:SampleMax, end - 1)];
+%         end
+%     else
+%         
     end
     
     ChanStr = vars.ChannelNames(vars.ChannelsToPlot);
@@ -36,22 +44,32 @@ if vars.currentPosition > vars.EEGPlotPosition
     YTickLab  = cell(vars.numChannelsToPlot * 3, 1);
     %adjust our sample to create vertical channel offsets
     for i = 1:vars.numChannelsToPlot
-        mx = max(SampleToPlot(:, i));
-        mn = min(SampleToPlot(:, i));
-        SampleToPlot(:, i) = 2 * (SampleToPlot(:, i) - mn)/(mx - mn) + i * 2;
-        YTickPos(i * 3 - 1) = i * 2 + 1;
-        YTickPos(i * 3 - 2) = i * 2 + 0.5;
-        YTickPos(i * 3) = i * 2 + 1.5;
-        YTickLab(i * 3 - 1) = ChanStr(i);
-        YTickLab(i * 3 - 2) = {sprintf('%.2f', 0.75 * mn + 0.25 * mx)};
-        YTickLab(i * 3) = {sprintf('%.2f', 0.25 * mn + 0.75 * mx)};
+        if vars.ScaleSize == 0 
+            mx = max(SampleToPlot(:, i));
+            mn = min(SampleToPlot(:, i));
+            SampleToPlot(:, i) = 2 * (SampleToPlot(:, i) - mn)/(mx - mn) + i * 2;
+            YTickPos(i * 3 - 1) = i * 2 + 1;
+            YTickPos(i * 3 - 2) = i * 2 + 0.5;
+            YTickPos(i * 3) = i * 2 + 1.5;
+            YTickLab(i * 3 - 1) = ChanStr(i);
+            YTickLab(i * 3 - 2) = {sprintf('%.2f', 0.75 * mn + 0.25 * mx)};
+            YTickLab(i * 3) = {sprintf('%.2f', 0.25 * mn + 0.75 * mx)};
+        else
+            SampleToPlot(:, i) = 2 * SampleToPlot(:, i)/(vars.ScaleSize * 2) + i * 2;
+            YTickPos(i * 3 - 1) = i * 2 + 1;
+            YTickPos(i * 3 - 2) = i * 2 + 0.5;
+            YTickPos(i * 3) = i * 2 + 1.5;
+            YTickLab(i * 3 - 1) = ChanStr(i);
+            YTickLab(i * 3 - 2) = {sprintf('%.2f', -1 * vars.ScaleSize)};
+            YTickLab(i * 3) = {sprintf('%.2f', vars.ScaleSize)};
+        end
         
     end
 
 
     %make our graph
-    if isgraphics(Graph)
-        set(0, 'CurrentFigure', Graph)
+    if isgraphics(Graph.Graph)
+        set(0, 'CurrentFigure', Graph.Graph)
         plot(time, SampleToPlot, 'k' )
         xLines = unique(round(xMin:xMax));
         hold on
@@ -60,14 +78,13 @@ if vars.currentPosition > vars.EEGPlotPosition
         end
         hold off
         xlim([xMin, xMax])
-        
+        ylim([1, vars.numChannelsToPlot * 2 + 2])
 %         yticks(1 + (2:2:vars.numChannelsToPlot * 2));
 %         if ~vars.UseKalman
 %             yticklabels(vars.ChannelNames(vars.ChannelsToPlot))
 %         end
         yticks(YTickPos);
         yticklabels(YTickLab);
-        ylim([1, vars.numChannelsToPlot * 2 + 2])
         xlabel('Time (S)')
     end
 
