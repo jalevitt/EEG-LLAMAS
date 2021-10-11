@@ -1,4 +1,4 @@
-
+mfilename('fullpath')
 %build the sound we'll play
 fsSound = vars.audioDevices(vars.deviceID + 1).DefaultSampleRate; %48000;
 s = 0.05;
