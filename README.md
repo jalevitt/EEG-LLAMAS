@@ -1,7 +1,7 @@
 # RTEEG-fMRI
 A toolbox for real-time processing of EEG and EEG-fMRI data.
 
-The goal is to enable neuroffedback experiments using EEG-fMRI by removing 
+The goal is to enable neurofeedback experiments using EEG-fMRI by removing 
 BCG and Gradient artifacts in real time. BCG artifacts are removed using a 
 unique Kalman filter based algorithm.
 
