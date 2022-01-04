@@ -3,24 +3,24 @@ function [vars, Graph, EEG] = Kalman_chunk(EEG,vars, Graph)
 %   Detailed explanation goes here
 
     chunk = vars.chunk - mean(vars.chunk, 1); % re-reference  chunk to average
-    numReg = length(vars.r);
+    numReg = vars.numReg;
     n = size(chunk, 2);
     
     % build Design Matrix
-    BCG = chunk(vars.r, :);
-    DM = ones(numReg + 1, n);
-    DM(2:end, :) = BCG - mean(BCG, 1);
+    DM = ones(size(chunk, 1) + 1, n);
+    DM(2:end, :) = chunk - mean(chunk(vars.r, :), 1);
     numKalman = length(vars.KalmanTargets);
     Signal = chunk(vars.KalmanTargets, :);
     h_hat = zeros(n, numKalman);
     
     % loop through channels and samples
     for chan = 1:numKalman
-        if  strcmp(vars.RefMode, 'Channel Locations')
+        if  strcmp(vars.RefMode, 'Channel Location')
             ChannelRefs = [1, 1 + vars.RefChans(chan, :)];
             channelDM = DM(ChannelRefs, :);
+            
         else
-            channelDM = DM;
+            channelDM = DM([1; vars.r + 1], :);
         end
         for t = 1:n
             x_hat_givenPrevious = vars.x_hat(:, chan);
