@@ -19,7 +19,10 @@ elseif SamplesInChunk == 1
 else
     chunk = downsample(chunk', DSrate, dsBuffer)';
 end
-dsBuffer = mod(SamplesInChunk - dsBuffer, DSrate);
+dsBuffer = DSrate - mod(SamplesInChunk - dsBuffer, DSrate);
+if dsBuffer == DSrate
+   dsBuffer = 0; 
+end
 [SamplesInChunk, ChansInChunk] = size(chunk');
 % if rand < 0.01
 %     SamplesInChunk
