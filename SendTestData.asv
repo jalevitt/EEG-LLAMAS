@@ -1,0 +1,66 @@
+% instantiate the library
+disp('Loading the library...');
+lib = lsl_loadlib();
+
+
+chunkSize = 32;
+fs = 5000;
+pauseTime = chunkSize/fs;
+numSec = 20;
+cn = dsp.ColoredNoise(1.5, fs * numSec, 64, 'OutputDataType', 'double');
+PinkSound = cn();
+t = (1:(fs * numSec)) / 5000;
+freq = 10;
+amp = 6;
+data = PinkSound';
+freqs = [8, 12, 15, 20];
+%data = (PinkSound + 3 * sin(t' * 2 * pi * 10))';
+% data(:, 40001:60000) = (PinkSound(40001:60000, :) + amp * sin(t(40001:60000)' * 2 * pi * 10))';
+% data(:, 70001:90000) = (PinkSound(70001:90000, :) + amp * sin(t(70001:90000)' * 2 * pi * 8))';
+% data(:, 100001:120000) = (PinkSound(100001:120000, :) + amp * sin(t(100001:120000)' * 2 * pi * 13))';
+% data(:, 130001:150000) = (PinkSound(130001:150000, :) + amp * sin(t(130001:150000)' * 2 * pi * 11))';
+[numChans, l] = size(data);
+beat = fs * 0.5;
+idx = 40001;
+idx:idx + beat - 1;
+data(:, idx:idx + beat - 1) = (PinkSound(idx:idx + beat - 1, :) + amp * sin(t(idx:idx + beat - 1)' * 2 * pi * freqs(1)))';
+idx = idx + beat * 2;
+data(:, idx:idx + beat - 1) = (PinkSound(idx:idx + beat - 1, :) + amp * sin(t(idx:idx + beat - 1)' * 2 * pi * freqs(2)))';
+idx = idx + beat * 2;
+data(:, idx:idx + 2 * beat - 1) = (PinkSound(idx:idx + 2 * beat - 1, :) + amp * sin(t(idx:idx + 2 * beat - 1)' * 2 * pi * freqs(3)))';
+idx = idx + beat * 3;
+data(:, idx:idx + beat - 1) = (PinkSound(idx:idx + beat - 1, :) + amp * sin(t(idx:idx + beat - 1)' * 2 * pi * freqs(1)))';
+idx = idx + beat * 2;
+data(:, idx:idx + beat - 1) = (PinkSound(idx:idx + beat - 1, :) + amp * sin(t(idx:idx + beat - 1)' * 2 * pi * freqs(2)))';
+idx = idx + beat * 2;
+data(:, idx:idx + beat - 1) = (PinkSound(idx:idx + beat - 1, :) + amp * sin(t(idx:idx + beat - 1)' * 2 * pi * freqs(4)))';
+idx = idx + beat * 1;
+data(:, idx:idx + 2 * beat - 1) = (PinkSound(idx:idx + 2 * beat - 1, :) + amp * sin(t(idx:idx + 2 * beat - 1)' * 2 * pi * freqs(3)))';
+idx = idx + beat * 4;
+data(:, idx:idx + beat - 1) = (PinkSound(idx:idx + beat - 1, :) + amp * sin(t(idx:idx + beat - 1)' * 2 * pi * freqs(1)))';
+idx = idx + beat * 2;
+data(:, idx:idx + beat - 1) = (PinkSound(idx:idx + beat - 1, :) + amp * sin(t(idx:idx + beat - 1)' * 2 * pi * freqs(2)))';
+idx = idx + beat * 2;
+data(:, idx:idx + 2 * beat - 1) = (PinkSound(65001:67500, :) + amp * sin(t(65001:67500)' * 2 * pi * freqs(3)))';
+idx = idx + beat * 3;
+data(:, idx:idx + beat - 1) = (PinkSound(idx:idx + beat - 1, :) + amp * sin(t(idx:idx + beat - 1)' * 2 * pi * freqs(2)))';
+idx = idx + beat * 2;
+data(:, idx:idx + 4 * beat - 1) = (PinkSound(71251:74375, :) + amp * sin(t(71251:74375)' * 2 * pi * freqs(1)))';
+%%
+% make a new stream outlet
+disp('Creating a new streaminfo...');
+info = lsl_streaminfo(lib,'Test2','EEG', numChans, fs,'cf_float32','sdfwerr32432');
+
+disp('Opening an outlet...');
+outlet = lsl_outlet(info);
+disp('Beginning Transmission');
+i = 1; %round(160 * fs);
+%send chunks until we reach the end of the file 
+while i < l - chunkSize
+    outlet.push_chunk(data(:, i:i+chunkSize - 1));
+    pause(pauseTime)
+    i = i + chunkSize
+    
+end
+outlet.delete()
+disp('Ending Transmission')
