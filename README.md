@@ -1,11 +1,11 @@
-# RTEEG-fMRI
-A toolbox for real-time processing of EEG and EEG-fMRI data.
+# EEG-LLAMAS
 
-The goal is to enable neurofeedback experiments using EEG-fMRI by removing 
-BCG and Gradient artifacts in real time. BCG artifacts are removed using a 
-unique Kalman filter based algorithm.
+EEG-LLAMAS (Low-Latency Artifact Mitigation Acquisition Software) is an
+open-source platform intended to enable neurofeedback experiments using 
+EEG-fMRI by removing BCG and Gradient artifacts in real time. BCG 
+artifacts are removed using a unique Kalman filter based algorithm.
 
-Can also be used for EEG outside of the scanner.
+Can also be used to collect EEG neurofeedback outside of the scanner.
 
 To begin, open RealtimeEEGUI_App.mlapp and press run, or type 
 RealtimeEEGUI_App into your command window. Check all settings in the main 
@@ -24,7 +24,7 @@ Just make sure the header of your funtions follow the format:
 This app is currently optimized to work with 64 channel Braincap MR 
 headsets, but can be adapted for other hardware.
 
-RealTimeEEGUI is dependent upon Labstreaminglayer and PsychToolbox.
+EEG-LLAMAS is dependent upon Labstreaminglayer and PsychToolbox.
 
 Still very much a work in progress
 
