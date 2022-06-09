@@ -6,7 +6,7 @@ if vars.currentPosition > vars.EEGPlotPosition
     %print chunk size once in while so you can monitor it in real time
     %Ideally shoud be in the single digits or low teens but
     %spikes up to ~25 aren't unusual
-
+ 
     vars.SamplesInChunk
     %calc limits of graph
 
@@ -70,12 +70,27 @@ if vars.currentPosition > vars.EEGPlotPosition
     %make our graph
     if isgraphics(Graph.Graph)
         set(0, 'CurrentFigure', Graph.Graph)
+    
+        if vars.GPU > 0
+            time = gpuArray(time);
+            SampleToPlot = gpuArray(SampleToPlot);
+        end
+   
         plot(time, SampleToPlot, 'k' )
         xLines = unique(round(xMin:xMax));
+        ylims = [1, vars.numChannelsToPlot * 2 + 2];
+        if vars.GPU > 0
+            xLines = gpuArray(xLines);
+            ylims = gpuArray(ylims);
+        end
+        
         hold on
         for xl = xLines
-            xline(xl, 'Color', [0.5, 0.5, 0.5], 'LineStyle', ':', 'LineWidth', 0.25);
+            plot([xl, xl], ylims, ...
+                'Color', [0.5, 0.5, 0.5], 'LineStyle', ':', 'LineWidth', 0.25);
+            %xline(xl, 'Color', [0.5, 0.5, 0.5], 'LineStyle', ':', 'LineWidth', 0.25);
         end
+
         hold off
         xlim([xMin, xMax])
         ylim([1, vars.numChannelsToPlot * 2 + 2])
@@ -86,6 +101,7 @@ if vars.currentPosition > vars.EEGPlotPosition
         yticks(YTickPos);
         yticklabels(YTickLab);
         xlabel('Time (S)')
+
     end
 
     %set the next time we'll update our plot

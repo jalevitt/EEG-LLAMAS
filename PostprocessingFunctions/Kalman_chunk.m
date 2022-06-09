@@ -1,8 +1,9 @@
 function [vars, Graph, EEG] = Kalman_chunk(EEG,vars, Graph)
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
-
-    chunk = vars.chunk - mean(vars.chunk, 1); % re-reference  chunk to average
+    
+    chunk = vars.chunk;
+    chunk(vars.KalmanTargets, :) = chunk(vars.KalmanTargets, :) - mean(chunk(vars.KalmanTargets, :), 1); % re-reference EEG channels of chunk to average
     numReg = vars.numReg;
     n = size(chunk, 2);
     
