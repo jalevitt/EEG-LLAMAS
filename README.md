@@ -7,8 +7,8 @@ artifacts are removed using a unique Kalman filter based algorithm.
 
 Can also be used to collect EEG neurofeedback outside of the scanner.
 
-To begin, open RealtimeEEGUI_App.mlapp and press run, or type 
-RealtimeEEGUI_App into your command window. Check all settings in the main 
+To begin, open EEG_LLAMAS.mlapp and press run, or type 
+EEG_LLAMAS into your command window. Check all settings in the main 
 UI, the press 'Open Settings' and set the advanced settings. Then press 
 'begin recording'. If everything is set up properly, you should begin 
 streaming data in ~10 seconds or so. 
