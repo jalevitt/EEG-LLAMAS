@@ -26,9 +26,7 @@ headsets, but can be adapted for other hardware.
 
 EEG-LLAMAS is dependent upon Labstreaminglayer and PsychToolbox.
 
-Still very much a work in progress
-
 Under development by Joshua Levitt of the Lewis Neuro lab at Boston 
 University.
-For more info, please communicate eithe via Github or by email at 
+For more info, please communicate either via Github or by email at 
 JaLevitt@bu.edu
