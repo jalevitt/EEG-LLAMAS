@@ -1,0 +1,15 @@
+Recording Name: rteeg27_r9
+Start Time: 14_Jun_2022_11_18_11
+Native Sample Rate: 5000 Hz
+Number of channels: 64
+Downsampling: True
+Downsampled rate: 200
+Native referencing Montage
+ Triggers: True
+Primary Channel: 17
+Alpha Stimulation: False
+Slow Wave Stimulation: False
+Gradient Artifact Correction: True
+	ntr = 10 
+Is Replay: False
+Use Kalman Filter: True
