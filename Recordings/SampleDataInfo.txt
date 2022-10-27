@@ -1,2 +1,3 @@
 We wanted to add some sample data to this branch so users could get a sense of what the output of LLAMAS looks like. 
 Unfortunately the files are too large to upload to Github, so we are trying to find a work-around for hosting them.
+For  now, the sample data can be accessed here: https://www.dropbox.com/sh/qan0nxss7ilvt0w/AAB4O3lt2yupUOU2tIkkJy9Sa?dl=0
