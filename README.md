@@ -24,6 +24,8 @@ Just make sure the header of your funtions follow the format:
 This app is currently optimized to work with 64 channel Braincap MR 
 headsets, but can be adapted for other hardware.
 
+For detailed instructions on how to use EEG-LLAMAS, please see the wiki: https://github.com/jalevitt/EEG-LLAMAS/wiki
+
 EEG-LLAMAS is dependent upon Labstreaminglayer and PsychToolbox.
 
 Under development by Joshua Levitt of the Lewis Neuro lab at Boston 
