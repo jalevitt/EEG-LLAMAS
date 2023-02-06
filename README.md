@@ -3,7 +3,8 @@
 EEG-LLAMAS (Low-Latency Artifact Mitigation Acquisition Software) is an
 open-source platform intended to enable neurofeedback experiments using 
 EEG-fMRI by removing BCG and Gradient artifacts in real time. BCG 
-artifacts are removed using a unique Kalman filter based algorithm.
+artifacts are removed using a unique Kalman filter based algorithm. 
+(https://www.biorxiv.org/content/10.1101/2022.11.21.515651v2)
 
 Can also be used to collect EEG neurofeedback outside of the scanner.
 
