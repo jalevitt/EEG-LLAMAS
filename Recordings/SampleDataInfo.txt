@@ -1,3 +1,7 @@
 We wanted to add some sample data to this branch so users could get a sense of what the output of LLAMAS looks like. 
-Unfortunately the files are too large to upload to Github, so we are trying to find a work-around for hosting them.
-For  now, the sample data can be accessed here: https://www.dropbox.com/sh/qan0nxss7ilvt0w/AAB4O3lt2yupUOU2tIkkJy9Sa?dl=0
+Unfortunately the files are too large to upload to Github, so we have uploaded them to figShare instead. please see them here:
+
+https://doi.org/10.6084/m9.figshare.22110872.v1
+
+Note that this still only contains downsampled (200Hz) recordings from inside the scanner, as the data exceeded the 20GB limit.
+2 sample 5000hz recording have been included as well.
