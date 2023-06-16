@@ -1,0 +1,44 @@
+function [vars, Graph, EEG] = SoundTest(EEG, vars, Graph)
+%UNTITLED Summary of this function goes here
+%   Detailed explanation goes here
+
+
+if vars.SamplesInChunk > 0 
+    if ~isfield(vars, 'SoundTest')
+        vars.SoundTest = struct();
+        vars.SoundTest.Rate = 2 * EEG.fs; %min timing between sound stimuli in samples
+        vars.SoundTest.Next = 10 * EEG.fs; % time of last stimuli, in samples - leaving 10s buffer at beginning of rec
+        vars.SoundTest.rng_time = RandStream("dsfmt19937", 'Seed', 132); %seed a random number stream for determining timing of stims
+        vars.SoundTest.rng = RandStream("dsfmt19937", 'Seed', 38); % seed a random number stream for determining order of stims
+        vars.SoundTest.StimCount = 0; % number of stims delivered
+        vars.SoundTest.StimTimes = zeros(1000, 1); % vector of stim timings, in samples
+        vars.SoundTest.StimVols = zeros(1000, 1); % vecotr of simulis volumes
+        vars.SoundTest.VolOptions = logspace(-3, 0, 10);
+        s = 0.05;
+        cn = dsp.ColoredNoise(1, vars.fsSound * s, 1, 'OutputDataType', 'double');
+        PinkSound = cn();
+        PinkSound = hamming(length(PinkSound)).*PinkSound;
+        vars.SoundTest.audio = [PinkSound'; PinkSound'];
+        PsychPortAudio('Stop', vars.audio_port);
+        
+    
+    else
+        % if we are in the scanner, we need to wait for the TRs to start,
+        % otherwise we can start right away
+        if (vars.UseGAC && sum(EEG.Recording_orig(:, end - 1) == vars.trMarker) > (vars.ntr + 1)) || ~vars.UseGAC
+            if vars.currentPosition > vars.SoundTest.Next 
+                vol = vars.SoundTest.VolOptions(randi(vars.SoundTest.rng, length(vars.SoundTest.VolOptions)));
+                PsychPortAudio('FillBuffer', vars.audio_port, vars.SoundTest.audio * vol);
+                PsychPortAudio('Start', vars.audio_port, vars.repetitions, vars.ChunkTime, 0);
+                vars.SoundTest.StimCount = vars.SoundTest.StimCount + 1;
+                vars.SoundTest.StimVols(vars.SoundTest.StimCount) = vol;
+                vars.SoundTest.StimTimes(vars.SoundTest.StimCount) = vars.currentPosition;
+                vars.SoundTest.Next = vars.currentPosition;
+            end
+        end
+            
+        
+    end
+end
+end
+

@@ -20,7 +20,6 @@ if vars.currentPosition > vars.EEGPlotPosition
     % make our time vector
     time = linspace(SampleMin/EEG.fs, SampleMax/EEG.fs, SampleMax - SampleMin + 1);
 
-
     %choose the sample section we'll be plotting
     SampleToPlot = EEG.Recording(SampleMin:SampleMax, vars.ChannelsToPlot');
     
@@ -39,7 +38,8 @@ if vars.currentPosition > vars.EEGPlotPosition
 %         
     end
     
-    ChanStr = vars.ChannelNames(vars.ChannelsToPlot);
+%     ChanStr = vars.ChannelNames(vars.ChannelsToPlot);
+    ChanStr = vars.ChanStr;
     YTickPos  = zeros(vars.numChannelsToPlot * 3, 1);
     YTickLab  = cell(vars.numChannelsToPlot * 3, 1);
     %adjust our sample to create vertical channel offsets
