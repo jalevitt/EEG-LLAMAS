@@ -1,14 +1,15 @@
 function [vars, Graph, EEG] = SlowWavePhasePredict(EEG, vars, Graph)
-% Predicts Fpz phase with no re-refef and deliver sound
+% Predicts Fpz phase re-referencing to mastoids and deliver sound
 
 if vars.SamplesInChunk > 0 
     if ~isfield(vars, 'PhasePredictor')
+        addpath('/home/lewislab/Desktop/EEG-LLAMAS-add_function/EEG-LLAMAS/PhasePredictors');
         if EEG.PrimaryChannel == 17
             fprintf('loading Fpz predictor...')
-            load('03-08-2022 15-35results_Fpz_2subs_100delay.mat', 'results');
+            load('03-30-2023 12-38_FpZ_3subs_mastoids_trainall.mat', 'results');
         elseif EEG.PrimaryChannel == 6
             fprintf('loading C4 predictor...')
-            load('04-20-2022 12-33_C4_3subs_100ms.mat', 'results');
+            load('03-29-2023 16-55_C4_3subs_mastoids_trainall.mat', 'results');
         else
             fprintf('WARNING! NO PREDICTOR FOR THIS CHANNEL')
         end
@@ -16,28 +17,39 @@ if vars.SamplesInChunk > 0
         vars.SlowWaveDelay = .000;
         vars.Angles = zeros(1000000, 1);
         vars.X = zeros(3, 1000000);
+        vars.compLatency=zeros(1000000,1); %time from receiving chunk to playing sound
+        %initialize shim times; stimtimes are initialized in the llamas app
+        vars.shimCount= 1;
+        vars.shimcompLatency=zeros(100000,1); 
+        %for keeping track of stim block
+        vars.ifblock=1; %always start with the stim on
+        %storing stim block data
+        vars.ifblocktracker=zeros(100000,1);
+        vars.ifblocktimes=zeros(100000,1);
+        vars.ifblocktracker(1)=1;
+        vars.ifblocktimes(1)=1;
+        vars.countblocks=2;
+        vars.currentblocktime=vars.stimblock; %current time of stim block
     end
     if ~isfield(vars, 'b_delta')
         
-        vars.delpthresh = 7; % must be higher than this value
-        vars.movsthresh = 4; % must be lower than this value
-
-        vars.TriggerBuffer = EEG.fs.*2;
+       
+        vars.TriggerBuffer = EEG.fs*2.5; %at least 2.5 seconds between each stim
         
         vars.allMags = 0;
         vars.alldelps = 0;
         vars.allmovs = 0;
-
-        BandPass_SlowWave = designfilt('bandpassiir', ...
-            'PassbandFrequency1', 0.4, ... 
-            'Passbandfrequency2', 1.2, ... 
+        
+        BandPass_SlowWave= designfilt('bandpassiir', ...
+            'PassbandFrequency1', 0.4, ...
+            'Passbandfrequency2', 2, ...
             'StopbandFrequency1', 0.01,...
-            'StopbandFrequency2', 4, ...
-            'StopbandAttenuation1', 30, ...
-            'StopbandAttenuation2', 30, ...
+            'StopbandFrequency2', 6, ...
+            'StopbandAttenuation1', 20, ...
+            'StopbandAttenuation2', 20, ...
             'PassbandRipple', 1, ...
             'DesignMethod', 'butter', ...
-            'SampleRate', EEG.fs);
+            'SampleRate', 200);
         [vars.b, vars.a] = tf(BandPass_SlowWave);
         
         delta_filter = designfilt('bandpassiir', ...
@@ -69,28 +81,33 @@ if vars.SamplesInChunk > 0
             'DesignMethod', 'butter', ...
             'SampleRate', EEG.fs);
         [vars.b_hp, vars.a_hp] = tf(hp_filter);
-        vars.zhp = zeros(2,1); %filter initial conditions       
+        vars.zhp = zeros(6,1); %filter initial conditions  
     end
     if ~vars.UseKalman
         if(vars.currentPosition - vars.SamplesInChunk)-1 <= 0
-            sample =  EEG.Recording((vars.currentPosition - vars.SamplesInChunk):vars.currentPosition - 1, EEG.PrimaryChannel);
+            ref=mean(EEG.Recording((vars.currentPosition - vars.SamplesInChunk):vars.currentPosition - 1, 25:26),2);
+            sample =  EEG.Recording((vars.currentPosition - vars.SamplesInChunk):vars.currentPosition - 1, EEG.PrimaryChannel)-ref;
             sample = [0; sample];
         else
-            sample =  EEG.Recording((vars.currentPosition - vars.SamplesInChunk)-1:vars.currentPosition - 1, EEG.PrimaryChannel);
+            ref=mean(EEG.Recording((vars.currentPosition - vars.SamplesInChunk)-1:vars.currentPosition - 1, 25:26),2);
+            sample =  EEG.Recording((vars.currentPosition - vars.SamplesInChunk)-1:vars.currentPosition - 1, EEG.PrimaryChannel)-ref;
         end
     else
         if(vars.currentPosition - vars.SamplesInChunk)-1 <= 0
-            
-            sample =  EEG.Kalman_Signal((vars.currentPosition - vars.SamplesInChunk):vars.currentPosition - 1, EEG.KalmanPrimary);
+            ref = mean(EEG.Kalman_Signal((vars.currentPosition - vars.SamplesInChunk):vars.currentPosition - 1,25:26),2);
+            sample =  EEG.Kalman_Signal((vars.currentPosition - vars.SamplesInChunk):vars.currentPosition - 1, EEG.KalmanPrimary)-ref;
             sample = [0; sample];
         else
-            sample =  EEG.Kalman_Signal((vars.currentPosition - vars.SamplesInChunk)-1:vars.currentPosition - 1, EEG.KalmanPrimary);
+            ref=mean(EEG.Kalman_Signal((vars.currentPosition - vars.SamplesInChunk)-1:vars.currentPosition - 1, 25:26),2);
+            sample =  EEG.Kalman_Signal((vars.currentPosition - vars.SamplesInChunk)-1:vars.currentPosition - 1, EEG.KalmanPrimary)-ref;
         end
     end
 %     [sample, vars.zhp] = filter(vars.b_hp, vars.a_hp, sample(2:end), vars.zhp);
 %     sample = [0; sample];
     
-    [FiltSample, vars.z] = filter(vars.b, vars.a, sample(2:end), vars.z); 
+    
+    [FiltSample, vars.z] = filter(vars.b, vars.a, sample(2:end), vars.zhp); 
+    vars.zhp=vars.z; 
     X = zeros(3, length(sample) - 1, 1, 1);
     X(1, :, 1, 1) = sample(2:end);
     X(2, :, 1, 1) = diff(sample);
@@ -103,34 +120,64 @@ if vars.SamplesInChunk > 0
     if (vars.currentPosition - vars.TriggerBuffer) > vars.LastStimPosition
         Mag = norm(Pred{1}(:, end));
         vars.allMags(end+1) = Mag;
-        if Mag > EEG.Threshold
-            if (PredAngle>=deg2rad(-60) && PredAngle<=deg2rad(-10))
-                idx = (vars.currentPosition-EEG.fs*30-1):(vars.currentPosition-1);
-                if idx(1) >= 1
-                    % check for delta, print result
-                    delp = mean(envelope(filter(vars.b_delta, vars.a_delta, EEG.Recording(idx,9)), length(idx), 'rms'));
-                    vars.alldelps(end+1) = delp;
-                    disp('delp is ' + string(delp))                   
-                    if delp > vars.delpthresh
-                        % check for mov artifacts, print result
-                        movs = mean(envelope(filter(vars.b_mov, vars.a_mov, EEG.Recording(idx,9)), length(idx), 'rms'));
-                        vars.allmovs(end+1) = movs;
-                        disp('movs is ' + string(movs))
-                        if movs < vars.movsthresh
-                            PsychPortAudio('Start', vars.audio_port, vars.repetitions, vars.ChunkTime + vars.SlowWaveDelay, 0);
-                            %sound(Sound, fsSound)
-                            vars.StimTimes(vars.StimCount) = round(vars.currentPosition + vars.SlowWaveDelay * EEG.fs);
-                            vars.StimCount = vars.StimCount + 1;
-                            vars.LastStimPosition = vars.currentPosition;
-                            toc
-                            disp('Mag is ' + string(Mag))
-                            disp(vars.StimCount)
+            if Mag > vars.confthreshold
+                if (PredAngle>=deg2rad(-60) && PredAngle<=deg2rad(-10))
+                    idx = (vars.currentPosition-EEG.fs*30-1):(vars.currentPosition-1);
+                    if idx(1) >= 1
+                        % check for delta, print result
+                        delp = mean(envelope(filter(vars.b_delta, vars.a_delta, EEG.Recording(idx,9)), length(idx), 'rms'));
+                        vars.alldelps(end+1) = delp;
+                        disp('delp is ' + string(delp))                   
+                        if delp > vars.delpthresh
+                            % check for mov artifacts, print result
+                            movs = mean(envelope(filter(vars.b_mov, vars.a_mov, EEG.Recording(idx,9)), length(idx), 'rms'));
+                            vars.allmovs(end+1) = movs;
+                            disp('movs is ' + string(movs))
+                            if movs < vars.movsthresh
+                                if vars.ifblock==1
+                                if rand(1) >= vars.shimpercent
+                                PsychPortAudio('Start', vars.audio_port, vars.repetitions, vars.ChunkTime + vars.SlowWaveDelay, 0);
+                                %sound(Sound, fsSound)
+                                vars.StimTimes(vars.StimCount) = round(vars.currentPosition + vars.SlowWaveDelay * EEG.fs);
+                                vars.complatency(vars.StimCount)= toc(vars.clock);
+                                vars.StimCount = vars.StimCount + 1;
+                                disp('Stim was delivered! Mag is ' + string(Mag))
+                                disp(vars.StimCount)
+                                toc
+                                vars.LastStimPosition = vars.currentPosition;
+                                else
+                                disp('Sham! No stim delivered')
+                                vars.shimTimes(vars.shimCount) = round(vars.currentPosition + vars.SlowWaveDelay * EEG.fs);
+                                vars.shimcomplatency(vars.shimCount)= toc(vars.clock);
+                                vars.shimCount = vars.shimCount + 1;
+                                vars.LastStimPosition = vars.currentPosition;
+                                end
+                                
+                                end
+                            end
                         end
                     end
                 end
             end
+            end
+        if vars.stimblock ~= 0
+        if vars.currentPosition-vars.currentblocktime >= 0
+            if vars.ifblock==1
+                vars.ifblock = 0;
+                disp('stim turned off')
+                vars.ifblocktracker(vars.countblocks)=0;
+                vars.ifblocktimes(vars.countblocks)=vars.currentPosition;
+                vars.countblocks=vars.countblocks+1;
+            else
+                vars.ifblock = 1;
+                disp('stim turned on')
+                vars.ifblocktracker(vars.countblocks)=1;
+                vars.ifblocktimes(vars.countblocks)=vars.currentPosition;
+                vars.countblocks=vars.countblocks+1;
+            end
+            vars.currentblocktime = vars.currentblocktime+vars.stimblock;
         end
-    end
+        end
 end
-tic
+    tic
 end
